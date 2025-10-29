@@ -171,3 +171,21 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const netsuiteAuth = pgTable("NetSuiteAuth", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  accountId: varchar("accountId", { length: 255 }).notNull(),
+  clientId: varchar("clientId", { length: 255 }).notNull(),
+  accessToken: text("accessToken"),
+  refreshToken: text("refreshToken"),
+  tokenExpiresAt: timestamp("tokenExpiresAt"),
+  codeVerifier: text("codeVerifier"), // Stored temporarily for PKCE flow
+  autoRefresh: boolean("autoRefresh").default(true).notNull(), // Auto-refresh tokens when expiring
+  createdAt: timestamp("createdAt").notNull(),
+  updatedAt: timestamp("updatedAt").notNull(),
+});
+
+export type NetSuiteAuth = InferSelectModel<typeof netsuiteAuth>;

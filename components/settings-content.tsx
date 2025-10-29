@@ -7,6 +7,8 @@ import {
   SettingsSlidersIcon,
   SparklesIcon,
 } from "@/components/icons";
+import { NetSuiteConnection } from "@/components/netsuite-connection";
+import { NetSuiteMCPTools } from "@/components/netsuite-mcp-tools";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -66,34 +68,8 @@ export function SettingsContent() {
         >
           {activeTab === "netsuite" ? (
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">NetSuite Connection</CardTitle>
-                  <CardDescription>
-                    Configure your NetSuite integration settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm">
-                    NetSuite connection configuration will be available here.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">API Credentials</CardTitle>
-                  <CardDescription>
-                    Configure your NetSuite API credentials and authentication
-                    settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm">
-                    API credential management will be available here.
-                  </p>
-                </CardContent>
-              </Card>
+              <NetSuiteConnection />
+              <NetSuiteMCPTools />
             </div>
           ) : activeTab === "providers" ? (
             <div className="space-y-6">

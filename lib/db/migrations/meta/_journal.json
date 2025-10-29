@@ -57,6 +57,20 @@
       "when": 1757362773211,
       "tag": "0007_flowery_ben_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1761744332434,
+      "tag": "0008_rapid_lilith",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1761761189645,
+      "tag": "0009_magenta_anita_blake",
+      "breakpoints": true
     }
   ]
 }

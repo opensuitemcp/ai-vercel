@@ -25,6 +25,8 @@ import {
   type DBMessage,
   document,
   message,
+  type NetSuiteAuth,
+  netsuiteAuth,
   type Suggestion,
   stream,
   suggestion,
@@ -588,6 +590,164 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get stream ids by chat id"
+    );
+  }
+}
+
+// NetSuite Auth Queries
+export async function getNetSuiteAuthByUserId({
+  userId,
+}: {
+  userId: string;
+}): Promise<NetSuiteAuth | null> {
+  try {
+    const [auth] = await db
+      .select()
+      .from(netsuiteAuth)
+      .where(eq(netsuiteAuth.userId, userId))
+      .limit(1);
+
+    return auth ?? null;
+  } catch (error) {
+    console.error("Database error in getNetSuiteAuthByUserId:", error);
+    throw new ChatSDKError(
+      "bad_request:database",
+      `Failed to get NetSuite auth by user id: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+export async function createOrUpdateNetSuiteAuth({
+  userId,
+  accountId,
+  clientId,
+  accessToken,
+  refreshToken,
+  tokenExpiresAt,
+  codeVerifier,
+  autoRefresh,
+}: {
+  userId: string;
+  accountId: string;
+  clientId: string;
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  tokenExpiresAt?: Date | null;
+  codeVerifier?: string | null;
+  autoRefresh?: boolean;
+}) {
+  try {
+    const now = new Date();
+    const existing = await getNetSuiteAuthByUserId({ userId });
+
+    if (existing) {
+      return await db
+        .update(netsuiteAuth)
+        .set({
+          accountId,
+          clientId,
+          accessToken: accessToken ?? existing.accessToken,
+          refreshToken: refreshToken ?? existing.refreshToken,
+          tokenExpiresAt: tokenExpiresAt ?? existing.tokenExpiresAt,
+          codeVerifier: codeVerifier ?? existing.codeVerifier,
+          autoRefresh: autoRefresh ?? existing.autoRefresh,
+          updatedAt: now,
+        })
+        .where(eq(netsuiteAuth.userId, userId))
+        .returning();
+    }
+
+    return await db
+      .insert(netsuiteAuth)
+      .values({
+        userId,
+        accountId,
+        clientId,
+        accessToken,
+        refreshToken,
+        tokenExpiresAt,
+        codeVerifier,
+        autoRefresh: autoRefresh ?? true, // Default to true for new connections
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to create or update NetSuite auth"
+    );
+  }
+}
+
+export async function updateNetSuiteTokens({
+  userId,
+  accessToken,
+  refreshToken,
+  tokenExpiresAt,
+}: {
+  userId: string;
+  accessToken: string;
+  refreshToken: string;
+  tokenExpiresAt: Date;
+}) {
+  try {
+    return await db
+      .update(netsuiteAuth)
+      .set({
+        accessToken,
+        refreshToken,
+        tokenExpiresAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(netsuiteAuth.userId, userId))
+      .returning();
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update NetSuite tokens"
+    );
+  }
+}
+
+export async function updateNetSuiteAutoRefresh({
+  userId,
+  autoRefresh,
+}: {
+  userId: string;
+  autoRefresh: boolean;
+}) {
+  try {
+    return await db
+      .update(netsuiteAuth)
+      .set({
+        autoRefresh,
+        updatedAt: new Date(),
+      })
+      .where(eq(netsuiteAuth.userId, userId))
+      .returning();
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update NetSuite auto-refresh setting"
+    );
+  }
+}
+
+export async function deleteNetSuiteAuthByUserId({
+  userId,
+}: {
+  userId: string;
+}) {
+  try {
+    return await db
+      .delete(netsuiteAuth)
+      .where(eq(netsuiteAuth.userId, userId))
+      .returning();
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to delete NetSuite auth by user id"
     );
   }
 }

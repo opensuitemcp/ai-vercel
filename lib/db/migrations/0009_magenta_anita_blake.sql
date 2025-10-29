@@ -1,0 +1,1 @@
+ALTER TABLE "NetSuiteAuth" ADD COLUMN "autoRefresh" boolean DEFAULT true NOT NULL;
