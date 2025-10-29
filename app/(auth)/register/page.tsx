@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { AuthForm } from "@/components/auth-form";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { type RegisterActionState, register } from "../actions";
 
 export default function Page() {
-  const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const hasNavigatedRef = useRef(false);
 
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
     register,
@@ -25,6 +23,25 @@ export default function Page() {
   const { update: updateSession } = useSession();
 
   useEffect(() => {
+    // Early return for success status if already processed
+    if (state.status === "success") {
+      if (hasNavigatedRef.current) {
+        return; // Already processed, prevent duplicate
+      }
+      hasNavigatedRef.current = true; // Mark as processing immediately
+
+      toast({ type: "success", description: "Account created successfully!" });
+      setIsSuccessful(true);
+
+      // Update session and wait before navigating to ensure session is set
+      updateSession().then(() => {
+        // Use window.location for a clean navigation that fully reloads
+        window.location.href = "/";
+      });
+      return;
+    }
+
+    // Handle other statuses (only show once per status)
     if (state.status === "user_exists") {
       toast({ type: "error", description: "Account already exists!" });
     } else if (state.status === "failed") {
@@ -34,15 +51,8 @@ export default function Page() {
         type: "error",
         description: "Failed validating your submission!",
       });
-    } else if (state.status === "success") {
-      toast({ type: "success", description: "Account created successfully!" });
-
-      setIsSuccessful(true);
-      updateSession();
-      router.refresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status, router.refresh, updateSession]);
+  }, [state.status, updateSession]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
