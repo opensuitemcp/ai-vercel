@@ -3,23 +3,34 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
-import { useState } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
-import { PlusIcon, SettingsIcon, TrashIcon } from "@/components/icons";
+import {
+  LoaderCircleIcon,
+  MoonIcon,
+  OpenSuiteMCPLogo,
+  PlusIcon,
+  SettingsIcon,
+  SidebarLeftIcon,
+  SunIcon,
+  TrashIcon,
+} from "@/components/icons";
 import {
   getChatHistoryPaginationKey,
   SidebarHistory,
 } from "@/components/sidebar-history";
 import { SidebarUserNav } from "@/components/sidebar-user-nav";
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -36,9 +47,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, toggleSidebar, state } = useSidebar();
   const { mutate } = useSWRConfig();
+  const { setTheme, resolvedTheme } = useTheme();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleDeleteAll = () => {
     const deletePromise = fetch("/api/history", {
@@ -59,83 +76,148 @@ export function AppSidebar({ user }: { user: User | undefined }) {
 
   return (
     <>
-      <Sidebar className="group-data-[side=left]:border-r-0">
+      <Sidebar className="group-data-[side=left]:border-r-0" collapsible="icon">
         <SidebarHeader>
           <SidebarMenu>
-            <div className="flex flex-row items-center justify-between">
-              <Link
-                className="flex flex-row items-center gap-3"
-                href="/"
-                onClick={() => {
-                  setOpenMobile(false);
-                }}
-              >
-                <span className="cursor-pointer rounded-md px-2 font-semibold text-lg hover:bg-muted">
-                  Chatbot
-                </span>
-              </Link>
-              <div className="flex flex-row gap-1">
-                {user && (
-                  <>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          className="h-8 p-1 md:h-fit md:p-2"
-                          onClick={() => router.push("/settings")}
-                          type="button"
-                          variant="ghost"
-                        >
-                          <SettingsIcon />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent align="end" className="hidden md:block">
-                        Settings
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          className="h-8 p-1 md:h-fit md:p-2"
-                          onClick={() => setShowDeleteAllDialog(true)}
-                          type="button"
-                          variant="ghost"
-                        >
-                          <TrashIcon />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent align="end" className="hidden md:block">
-                        Delete All Chats
-                      </TooltipContent>
-                    </Tooltip>
-                  </>
-                )}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="h-8 p-1 md:h-fit md:p-2"
-                      onClick={() => {
-                        setOpenMobile(false);
-                        router.push("/");
-                        router.refresh();
-                      }}
-                      type="button"
-                      variant="ghost"
-                    >
-                      <PlusIcon />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent align="end" className="hidden md:block">
-                    New Chat
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className="gap-1">
+                <Link
+                  href="/"
+                  onClick={() => {
+                    setOpenMobile(false);
+                  }}
+                >
+                  <div className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
+                    <div className="h-6 w-6 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
+                      <OpenSuiteMCPLogo size={24} />
+                    </div>
+                  </div>
+                  <span className="text-foreground text-xl group-data-[collapsible=icon]:hidden dark:text-foreground/80">
+                    <span className="font-light tracking-tight">OpenSuite</span>
+                    <span className="font-bold">MCP</span>
+                  </span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          <SidebarMenu className="mt-2">
+            <SidebarMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton
+                    onClick={() => {
+                      setOpenMobile(false);
+                      router.push("/");
+                      router.refresh();
+                    }}
+                    type="button"
+                  >
+                    <PlusIcon />
+                    <span>New Chat</span>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">New Chat</TooltipContent>
+              </Tooltip>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="group-data-[collapsible=icon]:hidden">
           <SidebarHistory user={user} />
         </SidebarContent>
-        <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
+        <SidebarFooter className="mt-auto">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton onClick={toggleSidebar} type="button">
+                    <SidebarLeftIcon />
+                    <span>
+                      {state === "expanded" ? "Close Sidebar" : "Open Sidebar"}
+                    </span>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {state === "expanded" ? "Close Sidebar" : "Open Sidebar"}
+                </TooltipContent>
+              </Tooltip>
+            </SidebarMenuItem>
+            {user && (
+              <>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton
+                        onClick={() =>
+                          setTheme(resolvedTheme === "dark" ? "light" : "dark")
+                        }
+                        type="button"
+                      >
+                        {mounted ? (
+                          resolvedTheme === "dark" ? (
+                            <SunIcon />
+                          ) : (
+                            <MoonIcon />
+                          )
+                        ) : (
+                          <div className="animate-spin">
+                            <LoaderCircleIcon />
+                          </div>
+                        )}
+                        {mounted && (
+                          <span>
+                            {resolvedTheme === "dark" ? "Light" : "Dark"} Mode
+                          </span>
+                        )}
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      {mounted
+                        ? resolvedTheme === "dark"
+                          ? "Light"
+                          : "Dark"
+                        : "Theme"}{" "}
+                      Mode
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton
+                        onClick={() => {
+                          setOpenMobile(false);
+                          router.push("/settings");
+                        }}
+                        type="button"
+                      >
+                        <SettingsIcon />
+                        <span>Settings</span>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">Settings</TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton
+                        onClick={() => setShowDeleteAllDialog(true)}
+                        type="button"
+                      >
+                        <TrashIcon />
+                        <span>Delete All Chats</span>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      Delete All Chats
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+              </>
+            )}
+          </SidebarMenu>
+          {user && <SidebarUserNav user={user} />}
+        </SidebarFooter>
       </Sidebar>
 
       <AlertDialog

@@ -168,7 +168,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <div className="px-2 py-1 text-sidebar-foreground/50 text-xs">
-          Today
+          Recent Chats
         </div>
         <SidebarGroupContent>
           <div className="flex flex-col">
@@ -197,8 +197,8 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="flex w-full flex-row items-center justify-center gap-2 px-2 text-sm text-zinc-500">
-            Your conversations will appear here once you start chatting!
+          <div className="flex w-full flex-row items-center justify-start gap-2 px-2 text-sm text-zinc-500">
+            No recent chats...
           </div>
         </SidebarGroupContent>
       </SidebarGroup>
